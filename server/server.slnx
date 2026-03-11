@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="RateLimiter.Api/RateLimiter.Api.csproj" />
+  <Project Path="RateLimiter.Application/RateLimiter.Application.csproj" Id="e1c2fd2c-88bd-49ac-9553-548fab63611b" />
+  <Project Path="RateLimiter.Domain/RateLimiter.Domain.csproj" Id="5468d10d-95d7-41d0-9772-0f874dee2535" />
+  <Project Path="RateLimiter.Infrastructure/RateLimiter.Infrastructure.csproj" Id="b6082e89-c8ff-482e-aed4-df1fdd00949b" />
+</Solution>

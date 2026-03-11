@@ -1,0 +1,52 @@
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f3f3f3;
+}
+
+.container {
+  width: 800px;
+  margin: auto;
+  padding: 30px;
+  background: white;
+}
+
+h1 {
+  margin-bottom: 30px;
+}
+
+section {
+  margin-bottom: 30px;
+}
+
+input {
+  padding: 8px;
+  margin-right: 10px;
+}
+
+select {
+  padding: 8px;
+  margin-right: 10px;
+}
+
+button {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.client-card {
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.apikey {
+  font-size: 12px;
+  color: #777;
+  margin-top: 5px;
+}
+
+.response {
+  margin-top: 20px;
+  font-weight: bold;
+}
