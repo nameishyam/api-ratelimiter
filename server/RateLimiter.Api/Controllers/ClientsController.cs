@@ -8,15 +8,8 @@ namespace RateLimiter.Api.Controllers;
 
 [ApiController]
 [Route("api/clients")]
-public class ClientsController : ControllerBase
+public class ClientsController(ApplicationDbContext context) : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
-
-    public ClientsController(ApplicationDbContext context)
-    {
-        _context = context;
-    }
-
     [HttpPost]
     public async Task<IActionResult> CreateClient([FromBody] CreateClientRequest request)
     {
@@ -28,8 +21,8 @@ public class ClientsController : ControllerBase
             CreatedAt = DateTime.UtcNow
         };
 
-        _context.Clients.Add(client);
-        await _context.SaveChangesAsync();
+        context.Clients.Add(client);
+        await context.SaveChangesAsync();
 
         return Ok(client);
     }
@@ -37,7 +30,7 @@ public class ClientsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetClients()
     {
-        var clients = await _context.Clients.ToListAsync();
+        var clients = await context.Clients.ToListAsync();
         return Ok(clients);
     }
 }

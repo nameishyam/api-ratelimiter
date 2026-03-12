@@ -8,19 +8,12 @@ namespace RateLimiter.Api.Controllers;
 
 [ApiController]
 [Route("api/ratelimits")]
-public class RateLimitsController : ControllerBase
+public class RateLimitsController(ApplicationDbContext context) : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
-
-    public RateLimitsController(ApplicationDbContext context)
-    {
-        _context = context;
-    }
-
     [HttpPost]
     public async Task<IActionResult> SetRateLimit([FromBody] SetRateLimitRequest request)
     {
-        var existing = await _context.RateLimits
+        var existing = await context.RateLimits
             .FirstOrDefaultAsync(x => x.ClientId == request.ClientId);
 
         if (existing != null)
@@ -35,10 +28,10 @@ public class RateLimitsController : ControllerBase
                 RequestsPerMinute = request.RequestsPerMinute
             };
 
-            _context.RateLimits.Add(rateLimit);
+            context.RateLimits.Add(rateLimit);
         }
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return Ok();
     }
@@ -46,7 +39,7 @@ public class RateLimitsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetRateLimits()
     {
-        var limits = await _context.RateLimits
+        var limits = await context.RateLimits
             .Include(r => r.Client)
             .ToListAsync();
 

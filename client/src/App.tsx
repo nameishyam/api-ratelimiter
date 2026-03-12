@@ -1,22 +1,22 @@
 import { useEffect, useState } from "react";
-import {
-  createClient,
-  getClients,
-  setRateLimit,
-  callTest,
-  type Client,
-} from "./index";
+import * as api from "./";
 
 function App() {
-  const [name, setName] = useState<string>("");
-  const [clients, setClients] = useState<Client[]>([]);
-  const [selectedClient, setSelectedClient] = useState<string>("");
-  const [limit, setLimit] = useState<number>(10);
-  const [response, setResponse] = useState<string>("");
+  const [name, setName] = useState("");
+  const [clients, setClients] = useState<api.Client[]>([]);
+  const [selectedClient, setSelectedClient] = useState("");
+  const [limit, setLimit] = useState(10);
+  const [logs, setLogs] = useState<
+    { status: number; text: string; time: string }[]
+  >([]);
 
   async function loadClients() {
-    const data = await getClients();
-    setClients(data);
+    try {
+      const data = await api.getClients();
+      setClients(data);
+    } catch (err) {
+      console.error("Failed to load clients", err);
+    }
   }
 
   useEffect(() => {
@@ -25,82 +25,125 @@ function App() {
 
   async function handleCreateClient() {
     if (!name) return;
-
-    await createClient(name);
+    await api.createClient(name);
     setName("");
     loadClients();
   }
 
   async function handleSetLimit() {
     if (!selectedClient) return;
-
-    await setRateLimit(selectedClient, limit);
+    await api.setRateLimit(selectedClient, limit);
+    alert("Rate limit updated successfully!");
   }
 
   async function handleTest(apiKey: string) {
-    const res = await callTest(apiKey);
-    setResponse(res);
+    const res = await api.callTest(apiKey);
+    setLogs((prev) =>
+      [{ ...res, time: new Date().toLocaleTimeString() }, ...prev].slice(0, 5),
+    );
   }
 
   return (
-    <div className="container">
-      <h1>Distributed Rate Limiter Dashboard</h1>
+    <div className="dashboard-wrapper">
+      <header className="main-header">
+        <div className="brand">
+          <div className="logo-icon">⚡</div>
+          <h1>
+            Limitless<span>Dash</span>
+          </h1>
+        </div>
+        <div className="status-indicator">System Online</div>
+      </header>
 
-      <section>
-        <h2>Create Client</h2>
-
-        <input
-          type="text"
-          placeholder="Client Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-
-        <button onClick={handleCreateClient}>Create</button>
-      </section>
-
-      <section>
-        <h2>Configure Rate Limit</h2>
-
-        <select
-          value={selectedClient}
-          onChange={(e) => setSelectedClient(e.target.value)}
-        >
-          <option value="">Select Client</option>
-
-          {clients.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-
-        <input
-          type="number"
-          value={limit}
-          onChange={(e) => setLimit(parseInt(e.target.value))}
-        />
-
-        <button onClick={handleSetLimit}>Set Limit</button>
-      </section>
-
-      <section>
-        <h2>Test Requests</h2>
-
-        {clients.map((c) => (
-          <div className="client-card" key={c.id}>
-            <div>
-              <b>{c.name}</b>
+      <main className="dashboard-grid">
+        {/* LEFT COLUMN: Management */}
+        <div className="column management">
+          <section className="card">
+            <h3>Register New Client</h3>
+            <div className="input-group">
+              <input
+                type="text"
+                placeholder="e.g. Mobile App"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+              <button className="btn-primary" onClick={handleCreateClient}>
+                Create
+              </button>
             </div>
+          </section>
 
-            <div className="apikey">{c.apiKey}</div>
+          <section className="card">
+            <h3>Throttling Configuration</h3>
+            <div className="form-stack">
+              <label>Target Client</label>
+              <select
+                value={selectedClient}
+                onChange={(e) => setSelectedClient(e.target.value)}
+              >
+                <option value="">Select a client...</option>
+                {clients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
 
-            <button onClick={() => handleTest(c.apiKey)}>Send Request</button>
-          </div>
-        ))}
+              <label>Requests Per Minute</label>
+              <input
+                type="number"
+                value={limit}
+                onChange={(e) => setLimit(parseInt(e.target.value))}
+              />
+              <button className="btn-secondary" onClick={handleSetLimit}>
+                Update Policy
+              </button>
+            </div>
+          </section>
+        </div>
 
-        <div className="response">{response}</div>
-      </section>
+        {/* RIGHT COLUMN: Monitoring */}
+        <div className="column monitoring">
+          <section className="card">
+            <h3>Active Clients</h3>
+            <div className="client-grid">
+              {clients.map((c) => (
+                <div className="client-card" key={c.id}>
+                  <div className="client-info">
+                    <strong>{c.name}</strong>
+                    <code>{c.apiKey}</code>
+                  </div>
+                  <button
+                    className="btn-outline"
+                    onClick={() => handleTest(c.apiKey)}
+                  >
+                    Fire Request
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="card log-section">
+            <h3>Request Logs</h3>
+            <div className="log-container">
+              {logs.length === 0 && (
+                <p className="empty-state">No requests sent yet.</p>
+              )}
+              {logs.map((log, i) => (
+                <div
+                  key={i}
+                  className={`log-entry ${log.status === 429 ? "error" : "success"}`}
+                >
+                  <span className="log-time">{log.time}</span>
+                  <span className="log-status">{log.status}</span>
+                  <span className="log-msg">{log.text}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      </main>
     </div>
   );
 }
